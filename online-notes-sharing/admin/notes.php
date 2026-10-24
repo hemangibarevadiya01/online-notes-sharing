@@ -174,8 +174,11 @@ try {
                         </td>
                         <td class="text-end">
                             <div class="d-flex align-items-center justify-content-end gap-1">
-                                <a href="../note.php?id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-secondary py-1 px-2" target="_blank" title="Preview Note">
-                                    <i class="bi bi-eye"></i>
+                                <a href="view_note.php?id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-info py-1 px-2" title="Inspect & Moderate">
+                                    <i class="bi bi-search"></i>
+                                </a>
+                                <a href="../note.php?id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-secondary py-1 px-2" target="_blank" title="View Public Page">
+                                    <i class="bi bi-box-arrow-up-right"></i>
                                 </a>
                                 <a href="edit_note.php?id=<?= $n['id'] ?>" class="btn btn-sm btn-outline-primary py-1 px-2" title="Edit Note">
                                     <i class="bi bi-pencil"></i>

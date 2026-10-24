@@ -9,7 +9,7 @@ $admin_script = basename($_SERVER['PHP_SELF']);
     <div class="d-flex align-items-center gap-2 mb-4 px-2">
         <span class="brand-icon"><i class="bi bi-shield-check"></i></span>
         <div>
-            <h5 class="text-white mb-0 fw-bold">EduNotes</h5>
+            <h5 class="text-white mb-0 fw-bold">NoteShare</h5>
             <small class="text-white-50" style="font-size: 0.75rem;">Admin Management</small>
         </div>
     </div>
@@ -43,8 +43,11 @@ $admin_script = basename($_SERVER['PHP_SELF']);
         <a href="notifications.php" class="admin-nav-item <?= $admin_script === 'notifications.php' ? 'active' : '' ?>">
             <i class="bi bi-bell-fill fs-5"></i> Notifications
         </a>
+        <a href="settings.php" class="admin-nav-item <?= $admin_script === 'settings.php' ? 'active' : '' ?>">
+            <i class="bi bi-sliders fs-5"></i> Platform Settings
+        </a>
         <a href="profile.php" class="admin-nav-item <?= $admin_script === 'profile.php' ? 'active' : '' ?>">
-            <i class="bi bi-gear-fill fs-5"></i> Settings & Profile
+            <i class="bi bi-gear-fill fs-5"></i> Admin Profile
         </a>
     </nav>
 

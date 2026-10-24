@@ -9,7 +9,7 @@ $current_script = basename($_SERVER['PHP_SELF']);
         <!-- Brand Logo -->
         <a class="navbar-brand" href="index.php">
             <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
-            <span>Edu<span class="text-gradient">Notes</span></span>
+            <span>Note<span class="text-gradient">Share</span></span>
         </a>
 
         <!-- Mobile Toggle Button -->
@@ -19,7 +19,7 @@ $current_script = basename($_SERVER['PHP_SELF']);
 
         <div class="collapse navbar-collapse" id="navbarMain">
             <!-- Global Search Form -->
-            <form class="d-flex mx-lg-3 my-2 my-lg-0 flex-grow-1" style="max-width: 420px;" action="search.php" method="GET">
+            <form class="d-flex mx-lg-3 my-2 my-lg-0 flex-grow-1" style="max-width: 380px;" action="search.php" method="GET">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted ps-3">
                         <i class="bi bi-search"></i>
@@ -32,7 +32,7 @@ $current_script = basename($_SERVER['PHP_SELF']);
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link <?= $current_script === 'notes.php' ? 'active' : '' ?>" href="notes.php">
-                        <i class="bi bi-journal-text me-1"></i> Browse Notes
+                        <i class="bi bi-journal-text me-1"></i> Browse
                     </a>
                 </li>
                 <li class="nav-item">
@@ -41,8 +41,23 @@ $current_script = basename($_SERVER['PHP_SELF']);
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link <?= $current_script === 'trending.php' ? 'active' : '' ?>" href="trending.php">
+                        <i class="bi bi-fire text-danger me-1"></i> Trending
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link <?= in_array($current_script, ['groups.php', 'group.php']) ? 'active' : '' ?>" href="groups.php">
-                        <i class="bi bi-people-fill me-1"></i> Study Groups
+                        <i class="bi bi-people-fill me-1"></i> Groups
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_script === 'about.php' ? 'active' : '' ?>" href="about.php">
+                        About
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_script === 'contact.php' ? 'active' : '' ?>" href="contact.php">
+                        Contact
                     </a>
                 </li>
             </ul>
@@ -50,11 +65,6 @@ $current_script = basename($_SERVER['PHP_SELF']);
             <!-- User Authentication / Profile Section -->
             <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
                 <?php if (is_logged_in() && $user): ?>
-                    <?php if (is_admin()): ?>
-                        <a href="admin/dashboard.php" class="btn btn-sm btn-dark text-nowrap">
-                            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Admin Panel
-                        </a>
-                    <?php endif; ?>
                     <!-- Quick Upload Button -->
                     <a href="upload_note.php" class="btn btn-sm btn-primary text-nowrap">
                         <i class="bi bi-cloud-arrow-up-fill"></i> Upload Note
@@ -90,8 +100,13 @@ $current_script = basename($_SERVER['PHP_SELF']);
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item rounded-2 py-2" href="my_notes.php">
+                                    <i class="bi bi-journal-check me-2 text-info"></i> My Uploaded Notes
+                                </a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item rounded-2 py-2" href="profile.php">
-                                    <i class="bi bi-person-circle me-2 text-purple"></i> My Profile
+                                    <i class="bi bi-person-circle me-2 text-purple"></i> My Profile & Badges
                                 </a>
                             </li>
                             <li>
@@ -99,14 +114,6 @@ $current_script = basename($_SERVER['PHP_SELF']);
                                     <i class="bi bi-bookmark-fill me-2 text-warning"></i> Saved Notes
                                 </a>
                             </li>
-                            <?php if (is_admin()): ?>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item rounded-2 py-2 text-primary fw-bold" href="admin/dashboard.php">
-                                        <i class="bi bi-shield-lock-fill me-2"></i> Admin Panel
-                                    </a>
-                                </li>
-                            <?php endif; ?>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item rounded-2 py-2 text-danger" href="logout.php">

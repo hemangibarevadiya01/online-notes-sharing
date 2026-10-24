@@ -66,6 +66,9 @@ try {
             );
         }
 
+        // Record study activity
+        record_study_activity((int)$user['id'], 'comment', $note_id);
+
         flash('success', 'Your comment has been posted.');
         header('Location: note.php?id=' . $note_id . '#comment-' . $comment_id);
         exit;

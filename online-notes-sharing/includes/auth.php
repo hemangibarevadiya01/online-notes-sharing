@@ -16,23 +16,39 @@ require_once __DIR__ . '/db.php';
  * Check if the user is currently logged in
  */
 function is_logged_in(): bool {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+    return (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) 
+        || (isset($_SESSION['admin_id']) && !empty($_SESSION['admin_id']));
 }
 
 /**
  * Check if current logged in user is an administrator
  */
 function is_admin(): bool {
-    return is_logged_in() && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+    if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'admin') {
+        return true;
+    }
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+}
+
+function is_admin_logged_in(): bool {
+    return is_admin();
 }
 
 /**
  * Enforce that the user must be logged in to view the page
  */
-function require_login(string $redirect_to = ''): void {
+function require_login(string $message_or_redirect = 'Please log in to continue.', string $redirect_to = ''): void {
     if (!is_logged_in()) {
-        $target = $redirect_to ?: $_SERVER['REQUEST_URI'] ?? 'dashboard.php';
-        flash('warning', 'Please sign in to access this page.');
+        $msg = 'Please log in to continue.';
+        $target = '';
+        if (str_starts_with($message_or_redirect, '/') || str_contains($message_or_redirect, '.php')) {
+            $target = $message_or_redirect;
+        } else {
+            $msg = $message_or_redirect;
+            $target = $redirect_to;
+        }
+        $target = $target ?: ($_SERVER['REQUEST_URI'] ?? 'dashboard.php');
+        flash('warning', $msg);
         header('Location: login.php?redirect=' . urlencode($target));
         exit;
     }
@@ -42,15 +58,9 @@ function require_login(string $redirect_to = ''): void {
  * Enforce that the current user must have admin privileges
  */
 function require_admin(): void {
-    if (!is_logged_in()) {
-        flash('danger', 'Administrator access required. Please log in.');
-        header('Location: ../admin/login.php');
-        exit;
-    }
-
     if (!is_admin()) {
-        flash('danger', 'Access denied. You do not have administrator permissions.');
-        header('Location: ../dashboard.php');
+        flash('danger', 'Administrator access required. Please sign in to the Admin Portal.');
+        header('Location: ../admin/login.php');
         exit;
     }
 }
@@ -64,9 +74,12 @@ function current_user(): ?array {
         return null;
     }
     
+    $uid = (int)($_SESSION['user_id'] ?? $_SESSION['admin_id'] ?? 0);
+    if ($uid <= 0) return null;
+
     try {
         $stmt = $pdo->prepare("SELECT id, name, email, role, profile_image, status, created_at FROM users WHERE id = ?");
-        $stmt->execute([$_SESSION['user_id']]);
+        $stmt->execute([$uid]);
         $user = $stmt->fetch();
         if (!$user || $user['status'] === 'blocked') {
             // Log out blocked or deleted user immediately
@@ -181,13 +194,23 @@ function time_ago(string $datetime): string {
 /**
  * Create a system notification
  */
-function create_notification(int $user_id, string $title, string $message, string $type = 'general', ?int $note_id = null): bool {
+function create_notification(int $user_id, string $title, string $message, string $type = 'general', $note_or_link = null, ?string $link = null): bool {
     global $pdo;
     try {
-        $stmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, note_id, is_read) VALUES (?, ?, ?, ?, ?, 0)");
-        return $stmt->execute([$user_id, $title, $message, $type, $note_id]);
+        $note_id = null;
+        if (is_numeric($note_or_link)) {
+            $note_id = (int)$note_or_link;
+        } elseif (is_string($note_or_link) && !empty($note_or_link)) {
+            $link = $note_or_link;
+        }
+        $stmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, note_id, link, is_read) VALUES (?, ?, ?, ?, ?, ?, 0)");
+        return $stmt->execute([$user_id, $title, $message, $type, $note_id, $link]);
     } catch (PDOException $e) {
         error_log("Failed to create notification: " . $e->getMessage());
         return false;
     }
 }
+
+// Load Smart Study Mission and Knowledge Impact System
+require_once __DIR__ . '/study_mission.php';
+

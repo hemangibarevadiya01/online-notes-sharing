@@ -2,7 +2,8 @@
 $page_title = 'Search Study Notes';
 require_once __DIR__ . '/includes/auth.php';
 
-$current_user_id = is_logged_in() ? (int)$_SESSION['user_id'] : 0;
+require_login('Please log in to search study notes.');
+$current_user_id = (int)$_SESSION['user_id'];
 
 $keyword = trim($_GET['q'] ?? '');
 $subject = trim($_GET['subject'] ?? '');
@@ -23,11 +24,12 @@ $where_clauses = ["n.status = 'approved'"];
 $params = [':uid1' => $current_user_id, ':uid2' => $current_user_id];
 
 if (!empty($keyword)) {
-    $where_clauses[] = "(n.title LIKE :kw1 OR n.description LIKE :kw2 OR n.subject LIKE :kw3 OR u.name LIKE :kw4)";
+    $where_clauses[] = "(n.title LIKE :kw1 OR n.description LIKE :kw2 OR n.subject LIKE :kw3 OR u.name LIKE :kw4 OR n.keywords LIKE :kw5)";
     $params[':kw1'] = "%{$keyword}%";
     $params[':kw2'] = "%{$keyword}%";
     $params[':kw3'] = "%{$keyword}%";
     $params[':kw4'] = "%{$keyword}%";
+    $params[':kw5'] = "%{$keyword}%";
 }
 
 if (!empty($subject)) {

@@ -7,16 +7,16 @@
             <div class="col-lg-4 col-md-6">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
-                    <span class="fs-4 fw-bold">Edu<span class="text-gradient">Notes</span></span>
+                    <span class="fs-4 fw-bold">Note<span class="text-gradient">Share</span></span>
                 </div>
                 <p class="text-muted small pe-lg-4">
-                    Online Notes Sharing Platform is a student-centric collaborative academic hub. Discover, upload, review, and exchange study notes across disciplines and institutions worldwide.
+                    NoteShare is a student-centric collaborative academic hub. Discover, upload, review, and exchange study notes across disciplines and institutions worldwide.
                 </p>
                 <div class="d-flex gap-2 mt-3">
                     <a href="#" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-github"></i></a>
                     <a href="#" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-twitter-x"></i></a>
                     <a href="#" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-envelope"></i></a>
+                    <a href="contact.php" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-envelope"></i></a>
                 </div>
             </div>
 
@@ -25,11 +25,12 @@
                 <h6 class="fw-bold mb-3 text-dark">Platform</h6>
                 <ul class="list-unstyled small d-flex flex-column gap-2">
                     <li><a href="notes.php" class="text-decoration-none text-muted">Browse Notes</a></li>
+                    <li><a href="trending.php" class="text-decoration-none text-muted"><i class="bi bi-fire text-danger me-1"></i>Trending Notes</a></li>
                     <li><a href="categories.php" class="text-decoration-none text-muted">Subject Categories</a></li>
                     <li><a href="groups.php" class="text-decoration-none text-muted">Study Groups</a></li>
                     <li><a href="upload_note.php" class="text-decoration-none text-muted">Upload Material</a></li>
-                    <li><a href="search.php" class="text-decoration-none text-muted">Advanced Search</a></li>
-                    <li><a href="admin/admin_login.php" class="text-decoration-none text-muted"><i class="bi bi-shield-lock text-primary me-1"></i>Admin Portal</a></li>
+                    <li><a href="about.php" class="text-decoration-none text-muted">About NoteShare</a></li>
+                    <li><a href="contact.php" class="text-decoration-none text-muted">Contact Support</a></li>
                 </ul>
             </div>
 
@@ -64,7 +65,7 @@
 
         <div class="border-top pt-4 d-flex flex-column flex-md-row align-items-center justify-content-between small text-muted">
             <div>
-                &copy; <?= date('Y') ?> <strong>Online Notes Sharing Platform</strong>. All rights reserved.
+                &copy; <?= date('Y') ?> <strong>NoteShare — Online Notes Sharing Platform</strong> (BCA Final Year Project). All rights reserved.
             </div>
             <div class="d-flex gap-3 mt-2 mt-md-0">
                 <span class="badge bg-light text-dark border">PHP 8+</span>

@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
     $category_id = (int)($_POST['category_id'] ?? 0);
+    $keywords = trim($_POST['keywords'] ?? '');
     $description = trim($_POST['description'] ?? '');
 
     // Form field validation
@@ -112,8 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (move_uploaded_file($tmp_path, $destination)) {
             try {
                 $stmt = $pdo->prepare("INSERT INTO notes 
-                    (user_id, category_id, title, description, subject, file_name, file_path, file_type, file_size, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')");
+                    (user_id, category_id, title, description, subject, keywords, file_name, file_path, file_type, file_size, status) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')");
                 
                 $stmt->execute([
                     $user['id'],
@@ -121,13 +122,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $title,
                     $description,
                     $subject,
+                    $keywords,
                     $original_name,
                     $relative_path,
-                    $detected_mime,
+                    $ext,
                     $file_size
                 ]);
 
-                $note_id = $pdo->lastInsertId();
+                $note_id = (int)$pdo->lastInsertId();
+
+                // Record study mission activity for upload
+                record_study_activity((int)$user['id'], 'upload', $note_id);
 
                 // Generate system notification
                 create_notification(
@@ -135,11 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'Note Uploaded Successfully',
                     'Your study note "' . htmlspecialchars($title) . '" has been published and is now available.',
                     'note_upload',
-                    (int)$note_id
+                    $note_id
                 );
 
-                flash('success', 'Study note "' . htmlspecialchars($title) . '" uploaded successfully!');
-                header('Location: dashboard.php');
+                flash('success', 'Study note "' . htmlspecialchars($title) . '" uploaded successfully and added to your knowledge impact score!');
+                header('Location: my_notes.php');
                 exit;
             } catch (PDOException $e) {
                 error_log("Note upload DB error: " . $e->getMessage());
@@ -221,6 +226,16 @@ require_once __DIR__ . '/includes/header.php';
             <div class="mb-3">
                 <label for="description" class="form-label">Detailed Description</label>
                 <textarea class="form-control" id="description" name="description" rows="4" placeholder="Summarize key topics covered, lecture references, textbook chapters, or exam tips..."><?= htmlspecialchars($description) ?></textarea>
+            </div>
+
+            <!-- Keywords & Tags -->
+            <div class="mb-3">
+                <label for="keywords" class="form-label">Keywords & Search Tags</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-tags"></i></span>
+                    <input type="text" class="form-control" id="keywords" name="keywords" placeholder="e.g. data structures, algorithms, bca semester 3, binary trees" value="<?= htmlspecialchars($keywords) ?>">
+                </div>
+                <div class="form-text small">Comma-separated tags to help peers find your note through search.</div>
             </div>
 
             <!-- File Upload -->

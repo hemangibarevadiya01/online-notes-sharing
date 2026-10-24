@@ -2,7 +2,8 @@
 $page_title = 'Browse Study Notes';
 require_once __DIR__ . '/includes/auth.php';
 
-$current_user_id = is_logged_in() ? (int)$_SESSION['user_id'] : 0;
+require_login('Please log in to browse study notes.');
+$current_user_id = (int)$_SESSION['user_id'];
 
 // Filter and Sort Parameters
 $category_filter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
@@ -31,11 +32,12 @@ if ($category_filter > 0) {
 }
 
 if (!empty($search_query)) {
-    $sql_conditions[] = "(n.title LIKE :q1 OR n.subject LIKE :q2 OR n.description LIKE :q3 OR u.name LIKE :q4)";
+    $sql_conditions[] = "(n.title LIKE :q1 OR n.subject LIKE :q2 OR n.description LIKE :q3 OR u.name LIKE :q4 OR n.keywords LIKE :q5)";
     $params[':q1'] = "%{$search_query}%";
     $params[':q2'] = "%{$search_query}%";
     $params[':q3'] = "%{$search_query}%";
     $params[':q4'] = "%{$search_query}%";
+    $params[':q5'] = "%{$search_query}%";
 }
 
 $where_clause = implode(' AND ', $sql_conditions);

@@ -1,0 +1,12 @@
+# Apache URL Rewriting for NoteShare
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /online-notes-sharing/
+
+    # Map admin/login.php to admin/admin_login.php
+    RewriteRule ^admin/login\.php$ admin/admin_login.php [L,QSA]
+
+    # Map admin/register.php to admin/admin_register.php
+    RewriteRule ^admin/register\.php$ admin/admin_register.php [L,QSA]
+</IfModule>
+

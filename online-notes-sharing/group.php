@@ -2,6 +2,7 @@
 $page_title = 'Study Group Details';
 require_once __DIR__ . '/includes/auth.php';
 
+require_login('Please log in to view study group details.');
 $group_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($group_id <= 0) {
     flash('danger', 'Invalid group specified.');
@@ -9,7 +10,7 @@ if ($group_id <= 0) {
     exit;
 }
 
-$current_user_id = is_logged_in() ? (int)$_SESSION['user_id'] : 0;
+$current_user_id = (int)$_SESSION['user_id'];
 
 try {
     // 1. Fetch group info

@@ -4,6 +4,7 @@
  */
 require_once __DIR__ . '/includes/auth.php';
 
+require_login('Please log in to preview notes.');
 $note_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $mode = $_GET['mode'] ?? 'page'; // 'page' (UI wrapper) or 'stream' (direct inline content)
 
@@ -44,6 +45,10 @@ try {
         // Increment view count
         $stmt_v = $pdo->prepare("UPDATE notes SET views = views + 1 WHERE id = ?");
         $stmt_v->execute([$note_id]);
+
+        if (is_logged_in()) {
+            record_study_activity((int)$_SESSION['user_id'], 'preview', $note_id);
+        }
 
         if (ob_get_level()) ob_end_clean();
 

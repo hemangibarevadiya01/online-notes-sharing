@@ -2,7 +2,8 @@
 $page_title = 'Study Groups';
 require_once __DIR__ . '/includes/auth.php';
 
-$current_user_id = is_logged_in() ? (int)$_SESSION['user_id'] : 0;
+require_login('Please log in to access study groups.');
+$current_user_id = (int)$_SESSION['user_id'];
 $search_group = trim($_GET['q'] ?? '');
 
 $params = [];

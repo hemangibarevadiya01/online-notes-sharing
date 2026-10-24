@@ -1,14 +1,10 @@
 <?php
-$page_title = 'Sign In to Your Account';
+$page_title = 'Student Sign In';
 require_once __DIR__ . '/includes/auth.php';
 
-// Redirect if already logged in
-if (is_logged_in()) {
-    if (is_admin()) {
-        header('Location: admin/dashboard.php');
-    } else {
-        header('Location: dashboard.php');
-    }
+// Redirect if already logged in as a student
+if (is_logged_in() && !is_admin()) {
+    header('Location: dashboard.php');
     exit;
 }
 
@@ -28,40 +24,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($error)) {
         if (empty($email) || empty($password)) {
-            $error = 'Please enter both your email and password.';
+            $error = 'Please enter both your email address and password.';
         } else {
             try {
                 $stmt = $pdo->prepare("SELECT id, name, email, password, role, status FROM users WHERE email = ? LIMIT 1");
                 $stmt->execute([$email]);
-                $user = $stmt->fetch();
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($user && password_verify($password, $user['password'])) {
                     if ($user['status'] === 'blocked') {
-                        $error = 'Your account has been deactivated. Please contact support.';
+                        $error = 'Your student account has been deactivated. Please contact support.';
+                    } elseif ($user['role'] !== 'user') {
+                        // Allow only active student accounts through student login (no admin links/hints)
+                        $error = 'Invalid email address or password. Please try again.';
                     } else {
-                        // Successful login: Establish session with regenerated ID
+                        // Successful student login
                         session_regenerate_id(true);
+                        unset($_SESSION['admin_id'], $_SESSION['admin_name'], $_SESSION['admin_email'], $_SESSION['admin_role']);
                         $_SESSION['user_id'] = (int)$user['id'];
                         $_SESSION['user_name'] = $user['name'];
                         $_SESSION['user_email'] = $user['email'];
-                        $_SESSION['role'] = $user['role'];
+                        $_SESSION['role'] = 'user';
 
                         flash('success', 'Welcome back, ' . htmlspecialchars($user['name']) . '!');
 
-                        // Redirect based on role or requested target
+                        // Redirect to requested protected page or User Dashboard
                         if (!empty($redirect) && !str_starts_with($redirect, 'http://') && !str_starts_with($redirect, 'https://')) {
                             header('Location: ' . $redirect);
                         } else {
-                            if ($user['role'] === 'admin') {
-                                header('Location: admin/dashboard.php');
-                            } else {
-                                header('Location: dashboard.php');
-                            }
+                            header('Location: dashboard.php');
                         }
                         exit;
                     }
                 } else {
-                    $error = 'Invalid email or password. Please try again.';
+                    $error = 'Invalid email address or password. Please try again.';
                 }
             } catch (PDOException $e) {
                 error_log("Login error: " . $e->getMessage());
@@ -74,79 +70,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="auth-wrapper">
-    <div class="auth-card">
+<div class="auth-wrapper py-5">
+    <div class="auth-card mx-auto">
         <div class="text-center mb-4">
-            <div class="brand-icon mx-auto mb-3" style="width: 48px; height: 48px; font-size: 1.5rem;">
+            <div class="brand-icon mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.6rem;">
                 <i class="bi bi-mortarboard-fill"></i>
             </div>
-            <h3 class="fw-bold mb-1">Welcome Back</h3>
-            <p class="text-muted small">Sign in to access study notes, upload materials & collaborate</p>
+            <h3 class="fw-bold mb-1">Student Sign In</h3>
+            <p class="text-muted small">Access your study dashboard, lecture notes & peer study groups</p>
         </div>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger py-2 px-3 small rounded-3 mb-4 d-flex align-items-center">
-                <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+                <i class="bi bi-exclamation-octagon-fill me-2 fs-5 flex-shrink-0"></i>
                 <div><?= htmlspecialchars($error) ?></div>
             </div>
         <?php endif; ?>
 
         <form method="POST" action="login.php" novalidate>
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-            <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
+            <?php if (!empty($redirect)): ?>
+                <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
+            <?php endif; ?>
 
-            <!-- Email Field -->
+            <!-- Email Address -->
             <div class="mb-3">
-                <label for="email" class="form-label">Email Address</label>
+                <label for="email" class="form-label fw-semibold small">Student Email Address</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light text-muted border-end-0">
                         <i class="bi bi-envelope"></i>
                     </span>
-                    <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="name@student.edu" value="<?= htmlspecialchars($email) ?>" required autocomplete="username">
+                    <input type="email" class="form-control border-start-0" id="email" name="email" value="<?= htmlspecialchars($email) ?>" placeholder="alex@student.com" required autocomplete="username">
                 </div>
             </div>
 
-            <!-- Password Field -->
-            <div class="mb-3">
+            <!-- Password -->
+            <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label for="password" class="form-label mb-0">Password</label>
+                    <label for="password" class="form-label fw-semibold small mb-0">Password</label>
                 </div>
                 <div class="input-group">
                     <span class="input-group-text bg-light text-muted border-end-0">
                         <i class="bi bi-lock"></i>
                     </span>
                     <input type="password" class="form-control border-start-0 border-end-0" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-                    <button class="btn btn-outline-secondary border-start-0 password-toggle-btn" type="button" data-target="password" aria-label="Show password">
+                    <button class="btn btn-outline-secondary border-start-0 password-toggle-btn" type="button" data-target="password" aria-label="Toggle password">
                         <i class="bi bi-eye"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Remember me & Forgot -->
-            <div class="d-flex justify-content-between align-items-center mb-4 small">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="rememberMe">
-                    <label class="form-check-label text-muted" for="rememberMe">Remember me</label>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+            <!-- Sign In Button -->
+            <button type="submit" class="btn btn-primary w-100 py-2 mb-3 fw-bold">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Dashboard
             </button>
 
             <!-- Register Link -->
-            <div class="text-center small text-muted mb-4">
-                Don't have an account? <a href="register.php" class="fw-bold text-primary">Create one now</a>
-            </div>
-
-            <!-- Test Credentials Callout -->
-            <div class="p-3 bg-light rounded-3 border small">
-                <div class="fw-bold text-dark mb-1"><i class="bi bi-key-fill text-warning me-1"></i> Demo Credentials</div>
-                <div class="text-muted d-flex flex-column gap-1">
-                    <div><strong>Admin:</strong> <code>admin@notes.com</code> / <code>admin123</code></div>
-                    <div><strong>Student:</strong> <code>alex@student.com</code> / <code>student123</code></div>
-                </div>
+            <div class="text-center small text-muted">
+                New to NoteShare? <a href="register.php" class="fw-bold text-primary">Create a free student account</a>
             </div>
         </form>
     </div>

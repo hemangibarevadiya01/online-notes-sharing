@@ -35,10 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $error = 'Administrator account has been deactivated.';
                     } else {
                         session_regenerate_id(true);
+                        $_SESSION['admin_id'] = (int)$user['id'];
+                        $_SESSION['admin_name'] = $user['name'];
+                        $_SESSION['admin_email'] = $user['email'];
+                        $_SESSION['admin_role'] = 'admin';
                         $_SESSION['user_id'] = (int)$user['id'];
-                        $_SESSION['user_name'] = $user['name'];
-                        $_SESSION['user_email'] = $user['email'];
-                        $_SESSION['role'] = $user['role'];
+                        $_SESSION['role'] = 'admin';
 
                         flash('success', 'Logged in to Admin Management Portal.');
                         header('Location: dashboard.php');
@@ -60,12 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal Sign In | Online Notes Platform</title>
+    <title>Admin Portal Sign In | NoteShare Administration</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body class="bg-dark text-white d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+<body class="bg-dark text-white d-flex align-items-center justify-content-center" style="min-height: 100vh; background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);">
 
 <div class="container" style="max-width: 440px;">
     <div class="card shadow-lg border-0 bg-white text-dark rounded-4 p-4 p-md-5">
@@ -81,16 +83,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger py-2 small d-flex align-items-center mb-3">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <i class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0"></i>
                 <span><?= htmlspecialchars($error) ?></span>
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'admin_login.php') ?>">
+        <form method="POST" action="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'login.php') ?>">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
             <div class="mb-3">
-                <label for="adminEmail" class="form-label">Admin Email</label>
+                <label for="adminEmail" class="form-label fw-semibold small">Admin Email</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
                     <input type="email" class="form-control border-start-0" id="adminEmail" name="email" value="<?= htmlspecialchars($email) ?>" placeholder="admin@notes.com" required>
@@ -98,20 +100,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="mb-4">
-                <label for="adminPassword" class="form-label">Password</label>
+                <label for="adminPassword" class="form-label fw-semibold small">Password</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock"></i></span>
                     <input type="password" class="form-control border-start-0" id="adminPassword" name="password" placeholder="••••••••" required>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+            <button type="submit" class="btn btn-dark w-100 py-2 mb-3 fw-bold shadow-sm">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Access Admin Console
             </button>
 
             <div class="text-center pt-2 border-top">
                 <p class="small text-muted mb-2">Need to create a new administrator account?</p>
-                <a href="register_admin.php" class="btn btn-outline-secondary btn-sm w-100 mb-3">
+                <a href="register.php" class="btn btn-outline-secondary btn-sm w-100 mb-3">
                     <i class="bi bi-shield-plus me-1"></i> Register New Admin
                 </a>
             </div>

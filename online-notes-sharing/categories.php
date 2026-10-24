@@ -2,6 +2,8 @@
 $page_title = 'Academic Categories';
 require_once __DIR__ . '/includes/auth.php';
 
+require_login('Please log in to browse academic categories.');
+
 // Fetch all categories with note count, total downloads, and latest activity
 $categories = [];
 try {

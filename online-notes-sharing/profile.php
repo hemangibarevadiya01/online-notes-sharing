@@ -2,7 +2,8 @@
 $page_title = 'User Profile';
 require_once __DIR__ . '/includes/auth.php';
 
-$current_user_id = is_logged_in() ? (int)$_SESSION['user_id'] : 0;
+require_login('Please log in to view user profiles.');
+$current_user_id = (int)$_SESSION['user_id'];
 $profile_id = isset($_GET['id']) ? (int)$_GET['id'] : $current_user_id;
 
 if ($profile_id <= 0) {
@@ -43,7 +44,11 @@ try {
     $stmt_sv->execute([$profile_id]);
     $total_saved_notes = (int)$stmt_sv->fetchColumn();
 
-    // 3. Fetch User's Notes List
+    // 3. Fetch Knowledge Impact and Milestone Badges
+    $user_impact = calculate_knowledge_impact($profile_id);
+    $profile_badges = get_user_badges_full($profile_id);
+
+    // 4. Fetch User's Notes List
     $stmt_notes = $pdo->prepare("SELECT 
                                     n.*, 
                                     c.name AS category_name,
@@ -84,10 +89,15 @@ require_once __DIR__ . '/includes/header.php';
             <div class="flex-grow-1">
                 <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
                     <div>
-                        <h3 class="fw-bold mb-0"><?= htmlspecialchars($profile_user['name']) ?></h3>
-                        <span class="badge bg-primary-subtle text-primary border text-uppercase" style="font-size: 0.72rem;">
-                            <?= htmlspecialchars($profile_user['role']) ?>
-                        </span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <h3 class="fw-bold mb-0"><?= htmlspecialchars($profile_user['name']) ?></h3>
+                            <span class="badge bg-primary-subtle text-primary border text-uppercase" style="font-size: 0.72rem;">
+                                <?= htmlspecialchars($profile_user['role']) ?>
+                            </span>
+                            <span class="badge <?= $user_impact['level_badge'] ?> text-uppercase" style="font-size: 0.72rem;">
+                                <i class="bi bi-lightning-charge-fill me-1"></i><?= htmlspecialchars($user_impact['level']) ?> (<?= number_format($user_impact['score']) ?> pts)
+                            </span>
+                        </div>
                     </div>
 
                     <?php if ($is_self): ?>
@@ -125,6 +135,51 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Milestone Badges for this Student -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+            <div>
+                <h5 class="fw-bold mb-0"><i class="bi bi-award-fill text-warning me-2"></i> Academic Milestone Badges</h5>
+                <p class="text-muted small mb-0">Milestones achieved by this scholar through community contributions and learning missions.</p>
+            </div>
+            <span class="badge bg-purple-subtle text-purple border px-3 py-1 rounded-pill fw-semibold">
+                <?php 
+                    $u_count = 0;
+                    foreach ($profile_badges as $pb) { if (!empty($pb['is_unlocked'])) $u_count++; }
+                    echo $u_count . ' of ' . count($profile_badges) . ' Unlocked';
+                ?>
+            </span>
+        </div>
+
+        <div class="row g-3">
+            <?php foreach ($profile_badges as $badge): ?>
+                <?php $is_u = !empty($badge['is_unlocked']); ?>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="badge-item-card <?= $is_u ? 'unlocked' : 'locked' ?>" title="<?= htmlspecialchars($badge['description']) ?>">
+                        <div class="badge-icon-bubble">
+                            <?= $badge['symbol'] ?: '🏆' ?>
+                        </div>
+                        <h6 class="fw-bold mb-1 small text-truncate" title="<?= htmlspecialchars($badge['title']) ?>">
+                            <?= htmlspecialchars($badge['title']) ?>
+                        </h6>
+                        <p class="text-muted mb-2 text-truncate-2" style="font-size: 0.72rem; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            <?= htmlspecialchars($badge['description']) ?>
+                        </p>
+                        <?php if ($is_u): ?>
+                            <span class="badge bg-success-subtle text-success border px-2 py-1 rounded-pill" style="font-size: 0.65rem;">
+                                <i class="bi bi-check-circle-fill me-1"></i> <?= !empty($badge['awarded_at']) ? date('M j, Y', strtotime($badge['awarded_at'])) : 'Unlocked' ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill" style="font-size: 0.65rem;">
+                                <i class="bi bi-lock-fill me-1"></i> Locked
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 

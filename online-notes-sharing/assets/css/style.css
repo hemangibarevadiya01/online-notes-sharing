@@ -471,6 +471,136 @@ a:hover {
     margin-top: auto;
 }
 
+/* ==========================================================================
+   Smart Study Mission & Knowledge Impact System UI
+   ========================================================================== */
+.mission-card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(79, 70, 229, 0.15);
+    box-shadow: 0 4px 20px -2px rgba(79, 70, 229, 0.08);
+    transition: var(--transition);
+}
+
+.mission-card:hover {
+    box-shadow: 0 8px 30px -4px rgba(79, 70, 229, 0.14);
+}
+
+.impact-hero-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    color: #ffffff;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 25px -5px rgba(67, 56, 202, 0.3);
+}
+
+.mission-task-item {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    transition: var(--transition);
+}
+
+.mission-task-item:hover {
+    background: #ffffff;
+    border-color: #c7d2fe;
+    box-shadow: var(--shadow-sm);
+}
+
+.mission-task-item.completed {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.badge-item-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.badge-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.badge-item-card.unlocked {
+    border-color: #a78bfa;
+    background: linear-gradient(to bottom, #ffffff, #faf5ff);
+}
+
+.badge-item-card.locked {
+    opacity: 0.65;
+    background: #f8fafc;
+    filter: grayscale(80%);
+}
+
+.badge-item-card.locked:hover {
+    opacity: 0.9;
+    filter: grayscale(20%);
+}
+
+.badge-icon-bubble {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    background: #f1f5f9;
+    box-shadow: var(--shadow-sm);
+}
+
+.badge-item-card.unlocked .badge-icon-bubble {
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.25);
+}
+
+.circular-chart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100px;
+    max-height: 100px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.6s ease;
+}
+
+.circle.success {
+    stroke: #10b981;
+}
+
+.circle.primary {
+    stroke: #4f46e5;
+}
+
+.circle.warning {
+    stroke: #f59e0b;
+}
+
+.percentage {
+    fill: #0f172a;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.5rem;
+    text-anchor: middle;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
     .admin-sidebar {
@@ -484,3 +614,4 @@ a:hover {
         padding: 1.25rem;
     }
 }
+

@@ -58,6 +58,9 @@ try {
         );
     }
 
+    // Record study activity
+    record_study_activity((int)$user['id'], 'rating', $note_id);
+
     flash('success', 'Your rating of ' . $rating . ' star(s) has been recorded. Thank you for your feedback!');
     header('Location: note.php?id=' . $note_id);
     exit;

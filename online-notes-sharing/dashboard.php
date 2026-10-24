@@ -6,6 +6,44 @@ require_login();
 $user = current_user();
 $uid = (int)$user['id'];
 
+// Handle Study Goal Customization
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_mission_goal') {
+    $t_reads = max(1, min(30, (int)($_POST['target_reads'] ?? 3)));
+    $t_dl = max(1, min(30, (int)($_POST['target_downloads'] ?? 2)));
+    $t_up = max(0, min(15, (int)($_POST['target_uploads'] ?? 1)));
+
+    try {
+        $today_date = date('Y-m-d');
+        $cur_goal = get_or_create_daily_goal($uid, $today_date);
+        $status = ($cur_goal['completed_reads'] >= $t_reads && $cur_goal['completed_downloads'] >= $t_dl && $cur_goal['completed_uploads'] >= $t_up) ? 'completed' : 'in_progress';
+
+        $stmt_upd = $pdo->prepare("UPDATE study_goals SET target_reads = ?, target_downloads = ?, target_uploads = ?, status = ? WHERE id = ?");
+        $stmt_upd->execute([$t_reads, $t_dl, $t_up, $status, $cur_goal['id']]);
+        flash('success', 'Your daily study mission goals have been successfully updated!');
+    } catch (PDOException $e) {
+        error_log("Update mission goal error: " . $e->getMessage());
+        flash('danger', 'Unable to update study goal. Please try again.');
+    }
+    header('Location: dashboard.php');
+    exit;
+}
+
+// 0. Fetch Smart Study Mission & Knowledge Impact
+$daily_goal = get_or_create_daily_goal($uid);
+$impact = calculate_knowledge_impact($uid);
+$user_badges = get_user_badges_full($uid);
+
+// Calculate Mission Progress Percentage
+$target_total = (int)($daily_goal['target_reads'] ?? 3) + (int)($daily_goal['target_downloads'] ?? 2) + (int)($daily_goal['target_uploads'] ?? 1);
+$completed_total = min((int)($daily_goal['completed_reads'] ?? 0), (int)($daily_goal['target_reads'] ?? 3))
+                 + min((int)($daily_goal['completed_downloads'] ?? 0), (int)($daily_goal['target_downloads'] ?? 2))
+                 + min((int)($daily_goal['completed_uploads'] ?? 0), (int)($daily_goal['target_uploads'] ?? 1));
+$mission_pct = $target_total > 0 ? round(($completed_total / $target_total) * 100) : 0;
+if (($daily_goal['status'] ?? '') === 'completed') {
+    $mission_pct = 100;
+}
+$motivational_msg = get_motivational_message((float)$mission_pct, (int)$impact['score']);
+
 // 1. Statistics
 $stats = [
     'uploaded_notes' => 0,
@@ -14,6 +52,7 @@ $stats = [
     'saved_notes' => 0,
     'joined_groups' => 0
 ];
+
 
 try {
     // My Uploaded Notes & Total Downloads
@@ -171,6 +210,231 @@ require_once __DIR__ . '/includes/header.php';
             <a href="edit_profile.php" class="btn btn-outline-secondary">
                 <i class="bi bi-person-gear me-1"></i> Account Settings
             </a>
+        </div>
+    </div>
+
+    <!-- UNIQUE STANDOUT FEATURE: Smart Study Mission & Knowledge Impact System -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Today's Study Mission Card -->
+        <div class="col-lg-7">
+            <div class="mission-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary border px-2 py-1 rounded-pill small fw-bold mb-1">
+                            <i class="bi bi-calendar3 me-1"></i> <?= date('l, M j, Y') ?>
+                        </span>
+                        <h5 class="fw-bold mb-0"><i class="bi bi-compass-fill text-primary me-2"></i> Today's Study Mission</h5>
+                    </div>
+                    <div>
+                        <?php if (($daily_goal['status'] ?? '') === 'completed'): ?>
+                            <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Mission Complete!
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-warning-subtle text-warning border px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-hourglass-split me-1"></i> In Progress (<?= $mission_pct ?>%)
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Motivation & Progress Gauge -->
+                <div class="d-flex flex-column flex-sm-row align-items-center gap-3 p-3 bg-light rounded-4 mb-3">
+                    <div style="width: 84px; height: 84px; flex-shrink: 0;">
+                        <svg viewBox="0 0 36 36" class="circular-chart">
+                            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            <path class="circle <?= $mission_pct >= 100 ? 'success' : 'primary' ?>" stroke-dasharray="<?= $mission_pct ?>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            <text x="18" y="20.35" class="percentage"><?= $mission_pct ?>%</text>
+                        </svg>
+                    </div>
+                    <div class="flex-grow-1 text-center text-sm-start">
+                        <div class="small fw-bold text-primary text-uppercase mb-1"><i class="bi bi-chat-quote-fill me-1"></i> Daily Study Coach</div>
+                        <p class="small text-muted mb-0"><?= htmlspecialchars($motivational_msg) ?></p>
+                    </div>
+                </div>
+
+                <!-- 3 Interactive Mission Targets -->
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <!-- Task 1: Reading / Previews -->
+                    <?php 
+                        $pct_r = min(100, (int)$daily_goal['target_reads'] > 0 ? round(((int)$daily_goal['completed_reads'] / (int)$daily_goal['target_reads']) * 100) : 0);
+                        $done_r = (int)$daily_goal['completed_reads'] >= (int)$daily_goal['target_reads'];
+                    ?>
+                    <div class="mission-task-item <?= $done_r ? 'completed' : '' ?>">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="small fw-bold text-dark">
+                                <i class="bi <?= $done_r ? 'bi-check-circle-fill text-success' : 'bi-eye text-primary' ?> me-1"></i>
+                                Read & Preview Lecture Notes
+                            </span>
+                            <span class="small fw-semibold <?= $done_r ? 'text-success' : 'text-muted' ?>">
+                                <?= (int)$daily_goal['completed_reads'] ?> / <?= (int)$daily_goal['target_reads'] ?> read
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar <?= $done_r ? 'bg-success' : 'bg-primary' ?>" style="width: <?= $pct_r ?>%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Task 2: Downloads -->
+                    <?php 
+                        $pct_d = min(100, (int)$daily_goal['target_downloads'] > 0 ? round(((int)$daily_goal['completed_downloads'] / (int)$daily_goal['target_downloads']) * 100) : 0);
+                        $done_d = (int)$daily_goal['completed_downloads'] >= (int)$daily_goal['target_downloads'];
+                    ?>
+                    <div class="mission-task-item <?= $done_d ? 'completed' : '' ?>">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="small fw-bold text-dark">
+                                <i class="bi <?= $done_d ? 'bi-check-circle-fill text-success' : 'bi-cloud-download text-success' ?> me-1"></i>
+                                Download Reference Material
+                            </span>
+                            <span class="small fw-semibold <?= $done_d ? 'text-success' : 'text-muted' ?>">
+                                <?= (int)$daily_goal['completed_downloads'] ?> / <?= (int)$daily_goal['target_downloads'] ?> downloaded
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: <?= $pct_d ?>%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Task 3: Uploads -->
+                    <?php 
+                        $pct_u = min(100, (int)$daily_goal['target_uploads'] > 0 ? round(((int)$daily_goal['completed_uploads'] / (int)$daily_goal['target_uploads']) * 100) : 100);
+                        $done_u = (int)$daily_goal['completed_uploads'] >= (int)$daily_goal['target_uploads'];
+                    ?>
+                    <div class="mission-task-item <?= $done_u ? 'completed' : '' ?>">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="small fw-bold text-dark">
+                                <i class="bi <?= $done_u ? 'bi-check-circle-fill text-success' : 'bi-cloud-upload text-purple' ?> me-1"></i>
+                                Upload Study Notes
+                            </span>
+                            <span class="small fw-semibold <?= $done_u ? 'text-success' : 'text-muted' ?>">
+                                <?= (int)$daily_goal['completed_uploads'] ?> / <?= (int)$daily_goal['target_uploads'] ?> uploaded
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-purple" style="width: <?= $pct_u ?>%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                    <span class="text-muted small"><i class="bi bi-clock-history me-1"></i> Resets every midnight</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#goalModal">
+                        <i class="bi bi-sliders me-1"></i> Adjust Mission Targets
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Knowledge Impact Card -->
+        <div class="col-lg-5">
+            <div class="impact-hero-banner p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-white-50 small fw-bold text-uppercase">
+                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Impact System
+                        </span>
+                        <span class="badge <?= $impact['level_badge'] ?> px-3 py-1 rounded-pill">
+                            <?= htmlspecialchars($impact['level']) ?>
+                        </span>
+                    </div>
+                    <h3 class="display-5 fw-bold mb-0 text-white">
+                        <?= number_format($impact['score']) ?>
+                        <span class="fs-6 fw-normal text-white-50">Impact Pts</span>
+                    </h3>
+                    <p class="text-white-50 small mb-3">Calculated dynamically from your notes, student downloads, likes, ratings, and daily study activity.</p>
+                </div>
+
+                <!-- Impact Breakdown Pills -->
+                <div class="bg-white bg-opacity-10 p-3 rounded-4 mb-3">
+                    <div class="small text-white-50 fw-bold mb-2 text-uppercase" style="font-size:0.7rem;">Formula Contribution Breakdown:</div>
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="p-2 rounded bg-white bg-opacity-10">
+                                <span class="d-block fs-6 fw-bold text-white"><?= $impact['approved_notes'] ?></span>
+                                <span class="text-white-50" style="font-size:0.68rem;">Notes (&times;20)</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 rounded bg-white bg-opacity-10">
+                                <span class="d-block fs-6 fw-bold text-white"><?= $impact['downloads_received'] ?></span>
+                                <span class="text-white-50" style="font-size:0.68rem;">Downloads (&times;5)</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 rounded bg-white bg-opacity-10">
+                                <span class="d-block fs-6 fw-bold text-white"><?= $impact['likes_received'] ?></span>
+                                <span class="text-white-50" style="font-size:0.68rem;">Likes (&times;3)</span>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="p-2 rounded bg-white bg-opacity-10">
+                                <span class="d-block fs-6 fw-bold text-warning"><?= number_format($impact['avg_rating'], 1) ?> ★</span>
+                                <span class="text-white-50" style="font-size:0.68rem;">Avg Rating (&times;10)</span>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="p-2 rounded bg-white bg-opacity-10">
+                                <span class="d-block fs-6 fw-bold text-white"><?= $impact['total_activities'] ?></span>
+                                <span class="text-white-50" style="font-size:0.68rem;">Study Acts (&times;2)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="my_notes.php" class="btn btn-light text-primary fw-bold btn-sm flex-grow-1">
+                        <i class="bi bi-journal-text me-1"></i> Manage My Notes
+                    </a>
+                    <a href="trending.php" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-fire text-warning me-1"></i> Trending
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Academic Milestone Badges Showcase -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+            <div>
+                <h5 class="fw-bold mb-0"><i class="bi bi-award-fill text-warning me-2"></i> Academic Milestone Badges</h5>
+                <p class="text-muted small mb-0">Unlock unique study achievements as you share materials, read notes, and achieve daily missions.</p>
+            </div>
+            <span class="badge bg-purple-subtle text-purple border px-3 py-1 rounded-pill fw-semibold">
+                <?php 
+                    $unlocked_count = 0;
+                    foreach ($user_badges as $ub) { if (!empty($ub['is_unlocked'])) $unlocked_count++; }
+                    echo $unlocked_count . ' of ' . count($user_badges) . ' Unlocked';
+                ?>
+            </span>
+        </div>
+
+        <div class="row g-3">
+            <?php foreach ($user_badges as $badge): ?>
+                <?php $is_u = !empty($badge['is_unlocked']); ?>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="badge-item-card <?= $is_u ? 'unlocked' : 'locked' ?>" title="<?= htmlspecialchars($badge['description']) ?>">
+                        <div class="badge-icon-bubble">
+                            <?= $badge['symbol'] ?: '🏆' ?>
+                        </div>
+                        <h6 class="fw-bold mb-1 small text-truncate" title="<?= htmlspecialchars($badge['title']) ?>">
+                            <?= htmlspecialchars($badge['title']) ?>
+                        </h6>
+                        <p class="text-muted mb-2 text-truncate-2" style="font-size: 0.72rem; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            <?= htmlspecialchars($badge['description']) ?>
+                        </p>
+                        <?php if ($is_u): ?>
+                            <span class="badge bg-success-subtle text-success border px-2 py-1 rounded-pill" style="font-size: 0.65rem;">
+                                <i class="bi bi-check-circle-fill me-1"></i> Unlocked
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill" style="font-size: 0.65rem;">
+                                <i class="bi bi-lock-fill me-1"></i> Locked
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -522,6 +786,48 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                 <?php endif; ?>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Customize Daily Study Mission Goal -->
+<div class="modal fade" id="goalModal" tabindex="-1" aria-labelledby="goalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form action="dashboard.php" method="POST">
+                <input type="hidden" name="action" value="update_mission_goal">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="goalModalLabel">
+                        <i class="bi bi-sliders text-primary me-2"></i> Adjust Today's Study Mission
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-4">Customize your daily academic learning and contribution targets. Setting consistent daily study goals accelerates your exam readiness and increases your Knowledge Impact Score.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small"><i class="bi bi-eye text-primary me-1"></i> Target Note Reads / Previews per Day</label>
+                        <input type="number" class="form-control" name="target_reads" min="1" max="30" value="<?= htmlspecialchars($daily_goal['target_reads'] ?? 3) ?>" required>
+                        <div class="form-text">How many lecture notes or documents you plan to read today.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small"><i class="bi bi-cloud-download text-success me-1"></i> Target Reference Downloads per Day</label>
+                        <input type="number" class="form-control" name="target_downloads" min="1" max="30" value="<?= htmlspecialchars($daily_goal['target_downloads'] ?? 2) ?>" required>
+                        <div class="form-text">Recommended: 1 to 5 downloads for active revision.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small"><i class="bi bi-cloud-upload text-purple me-1"></i> Target Study Uploads per Day</label>
+                        <input type="number" class="form-control" name="target_uploads" min="0" max="15" value="<?= htmlspecialchars($daily_goal['target_uploads'] ?? 1) ?>" required>
+                        <div class="form-text">Share class summaries, formula sheets, or lab records.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">Save Mission Goals</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

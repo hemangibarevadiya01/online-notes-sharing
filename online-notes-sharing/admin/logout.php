@@ -16,6 +16,6 @@ if (ini_get("session.use_cookies")) {
 }
 session_destroy();
 session_start();
-flash('info', 'Logged out from Admin Portal.');
-header('Location: admin_login.php');
+flash('info', 'You have been successfully logged out from the Admin Portal.');
+header('Location: login.php');
 exit;

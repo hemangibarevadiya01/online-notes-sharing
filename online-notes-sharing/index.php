@@ -74,13 +74,13 @@ require_once __DIR__ . '/includes/header.php';
         <div class="row justify-content-center">
             <div class="col-lg-9">
                 <span class="badge bg-primary-subtle text-primary border px-3 py-2 rounded-pill fw-bold mb-3 d-inline-block">
-                    <i class="bi bi-stars text-warning me-1"></i> The Premier Academic Exchange Platform
+                    <i class="bi bi-stars text-warning me-1"></i> LEARN. SHARE. GROW.
                 </span>
                 <h1 class="display-4 fw-extrabold text-white mb-3">
-                    Unlock Knowledge. <br class="d-none d-md-block">Share & Discover <span class="text-gradient">Study Notes</span>.
+                    NoteShare — Online Notes <br class="d-none d-md-block">Sharing & Academic Platform
                 </h1>
                 <p class="lead text-white-50 mb-4" style="max-width: 680px; margin: 0 auto;">
-                    Access thousands of peer-reviewed lecture summaries, cheat-sheets, textbook solutions, and course guides created by top students.
+                    Access thousands of peer-reviewed lecture summaries, cheat-sheets, textbook solutions, and course guides created by top students. Set daily study goals and earn knowledge badges!
                 </p>
 
                 <!-- Search Box in Hero -->
@@ -96,6 +96,9 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
                     <a href="notes.php" class="btn btn-outline-light px-4">
                         <i class="bi bi-journal-text me-1"></i> Browse Catalog
+                    </a>
+                    <a href="trending.php" class="btn btn-warning text-dark fw-bold px-4">
+                        <i class="bi bi-fire me-1"></i> Trending Notes
                     </a>
                     <a href="upload_note.php" class="btn btn-primary px-4">
                         <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Study Note
@@ -144,6 +147,101 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div class="stat-number"><?= number_format($stats['groups']) ?>+</div>
                     <div class="stat-label">Study Groups</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Unique Feature Spotlight: Smart Study Mission & Knowledge Impact -->
+<section class="py-5" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <span class="badge bg-primary-subtle text-primary border px-3 py-1 rounded-pill fw-bold mb-2">
+                    <i class="bi bi-trophy-fill text-warning me-1"></i> Standout Academic Feature
+                </span>
+                <h2 class="fw-bold mb-3">Smart Study Mission & Knowledge Impact System</h2>
+                <p class="text-muted mb-4">
+                    Take your learning beyond passive reading. NoteShare rewards active study habits with daily personalized study goals, dynamic Knowledge Impact Score algorithms, and milestone badges.
+                </p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="brand-icon bg-primary text-white rounded-circle flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.1rem;">
+                            <i class="bi bi-compass"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">Daily Study Missions</strong>
+                            <span class="text-muted small">Set custom daily targets for reading, downloading, and uploading notes with live circular progress tracking.</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="brand-icon bg-purple text-white rounded-circle flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.1rem; background: #7c3aed;">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">Knowledge Impact Score</strong>
+                            <span class="text-muted small">A weighted scientific score combining your uploads (&times;20), downloads received (&times;5), likes (&times;3), ratings (&times;10), and study sessions.</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="brand-icon bg-success text-white rounded-circle flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.1rem; background: #10b981;">
+                            <i class="bi bi-award-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark">6 Milestone Badges</strong>
+                            <span class="text-muted small">Unlock prestigious accolades: First Step 🌱, Knowledge Seeker 📚, Knowledge Sharer 🚀, Helpful Learner 🤝, Goal Champion 🎯, and Master Reviewer 🌟.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="<?= is_logged_in() ? 'dashboard.php' : 'register.php' ?>" class="btn btn-primary px-4">
+                        <?= is_logged_in() ? 'View My Mission & Badges &rarr;' : 'Join NoteShare Today &rarr;' ?>
+                    </a>
+                    <a href="about.php" class="btn btn-outline-secondary px-3">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-4 bg-white rounded-4 shadow-sm border">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-shield-check me-1"></i> Preview: Student Mission Engine</h6>
+                        <span class="badge bg-success-subtle text-success border">Active</span>
+                    </div>
+                    <div class="row g-2 text-center mb-3">
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="fs-4 d-block">🌱</span>
+                                <strong class="small d-block text-dark">First Step</strong>
+                                <span class="text-muted" style="font-size:0.68rem;">1st Activity</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="fs-4 d-block">📚</span>
+                                <strong class="small d-block text-dark">Knowledge Seeker</strong>
+                                <span class="text-muted" style="font-size:0.68rem;">10 Reads</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="fs-4 d-block">🚀</span>
+                                <strong class="small d-block text-dark">Knowledge Sharer</strong>
+                                <span class="text-muted" style="font-size:0.68rem;">3 Uploads</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-3" style="background: linear-gradient(135deg, #1e1b4b, #4338ca); color: #fff;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-white-50">Impact Formula:</span>
+                            <span class="badge bg-warning text-dark fw-bold">Active Engine</span>
+                        </div>
+                        <code class="text-warning small d-block mb-1" style="font-size: 0.8rem;">
+                            Score = (Notes &times; 20) + (Downloads &times; 5) + (Likes &times; 3) + (Rating &times; 10) + (Acts &times; 2)
+                        </code>
+                        <span class="small text-white-50">Rewards quality academic sharing and peer collaboration.</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -272,7 +370,7 @@ require_once __DIR__ . '/includes/header.php';
     <div class="container text-center">
         <div class="mb-5" style="max-width: 640px; margin: 0 auto;">
             <span class="text-primary fw-bold small text-uppercase">Simple Workflow</span>
-            <h2 class="fw-bold">How EduNotes Works</h2>
+            <h2 class="fw-bold">How NoteShare Works</h2>
             <p class="text-muted">Three simple steps to supercharge your academic journey and prepare for your exams.</p>
         </div>
 

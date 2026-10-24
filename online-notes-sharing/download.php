@@ -51,6 +51,9 @@ try {
     $stmt_dl = $pdo->prepare("INSERT INTO downloads (note_id, user_id, downloaded_at) VALUES (?, ?, NOW())");
     $stmt_dl->execute([$note_id, $user['id']]);
 
+    // 3. Record study mission activity for download
+    record_study_activity((int)$user['id'], 'download', $note_id);
+
     // Clean output buffer before file transmission
     if (ob_get_level()) {
         ob_end_clean();
